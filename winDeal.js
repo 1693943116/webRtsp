@@ -1,14 +1,20 @@
-// 监听尺寸变化（解决全屏播放 canvas尺寸不变的bug）
+// 监听尺寸变化
 var winResize = new ResizeObserver(function (entries) {
   entries.forEach((entry) => {
-    const width = entry.contentRect.width;
+    const width = doc.body.clientWidth,
+      height = doc.body.clientHeight;
     if (width) {
-      clientWidth = entry.contentRect.width;
-      clientHeight = entry.contentRect.height;
-      canvas.width = clientWidth;
-      canvas.height = clientHeight;
+      clientWidth = width;
+      clientHeight = height;
+
+      canvas.width = width;
+      canvas.height = height;
+      for (let i = 0, len = hisVideos.length; i < len; i++) {
+        hisVideos[i].width = clientWidth;
+        hisVideos[i].height = clientHeight;
+      }
     }
-    // 被销毁 关闭全屏时
+    // 被销毁
     else {
       cancelWebRtcServer(webRtcServer);
       cancelAnimations(hisrafId);
@@ -27,7 +33,7 @@ window.addEventListener("message", function (e) {
   if (Array.isArray(JSON.parse(e.data))) {
     // 取消绘制canvas
     cancelAnimations(hisrafId);
-    // 将实时摄像播放隐藏掉
+    // 将之前的隐藏掉
     video.style.display = "none";
     canvas.style.display = "none";
     preData = null;
@@ -56,8 +62,8 @@ window.addEventListener("message", function (e) {
     dealHis(hisCurrent);
     return;
   }
-  // =========================================================================实时视频================================================================================================
-  // 如果推流数据和上次一样 则不作处理
+  // =========================================================================以前逻辑================================================================================================
+
   if (preData === e.data) {
     return;
   }
@@ -66,19 +72,13 @@ window.addEventListener("message", function (e) {
   preData = e.data;
   var data = JSON.parse(e.data);
 
-  // 计算出是否分区 以及分多少区
   dealHisColRol(data);
-  dealRowCol();
   // rtsp一样 判断是否切换区域播放
   if (rtsp && rtsp === data.rtsp) {
-    if (+number >= +current && current > 0) {
-      // video或者cavas显示
-      dealColRow();
-      // 计算出一个区域的宽高
-      colRowSize();
-      // 开始绘制
-      comDraw(false, video);
-    }
+    // video或者cavas显示
+    dealColRow();
+    // 开始绘制
+    comDraw(false, video);
   }
   // 重新连接
   if (rtsp && rtsp !== data.rtsp) {
@@ -91,11 +91,24 @@ window.addEventListener("message", function (e) {
   }
 });
 
+window.onload = function () {
+  var controlEl = document.getElementById("cameraControl");
+  var areaEl = document.getElementById("areaControl");
+  var flag = 0;
+  var a = window.location.href.split("?")[1];
+  var b = a.split("&");
+  b.forEach((item) => {
+    var c = item.split("=");
+    if (c[0] === "control") {
+      flag = parseInt(c[1]);
+    }
+  });
+  if (!flag) {
+    controlEl.parentNode.removeChild(controlEl);
+    areaEl.parentNode.removeChild(areaEl);
+  }
+};
 window.onbeforeunload = function () {
-  // 关闭监听尺寸
   winResize.disconnect();
-
-  cancelAnimations(hisrafId);
-  cancelWebRtcServer(webRtcServer);
-  cancelHisVideo(hisVideos, hisWebRtcServer);
+  webRtcServer.disconnect();
 };

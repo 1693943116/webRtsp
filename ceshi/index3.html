@@ -9,57 +9,127 @@
   <body>
     <iframe
       id="iframe"
-      src="本地测试为index.html开启的服务地址 线上则为部署后的地址"
+      src="本地测试为index.html服务的地址 线上就是线上部署后的地址"
       frameborder="0"
-      style="width: 500px; height: 500px"
+      style="width: 500px; height: 281px"
     ></iframe>
-    <button onclick="poi()">测试换区和初始同一个流</button>
-    <button onclick="poi4()">历史视频很多（数组）</button>
+
+    <button onclick="poi()">和初始同一个流分区播放</button>
+    <button onclick="poi1()">测试换区和初始同一个流（不同分区）</button>
+
+    <button onclick="poi4()">历史视频很多（分界点）</button>
     <button onclick="poi5()">实时</button>
+    <button onclick="poi2()">测试重建（分区）</button>
+    <button onclick="quanping()">全屏</button>
+    <button onclick="guanbi()">关闭全屏</button>
     <script>
+      function quanping() {
+        var el = document.getElementById("iframe");
+        var rfs =
+          el.requestFullScreen ||
+          el.webkitRequestFullScreen ||
+          el.mozRequestFullScreen ||
+          el.msRequestFullScreen;
+
+        //typeof rfs != "undefined" && rfs
+        if (rfs) {
+          rfs.call(el);
+        } else if (typeof window.ActiveXObject !== "undefined") {
+          //for IE，这里其实就是模拟了按下键盘的F11，使浏览器全屏
+          var wscript = new ActiveXObject("WScript.Shell");
+          if (wscript != null) {
+            wscript.SendKeys("{F11}");
+          }
+        }
+      }
+      function guanbi() {}
       // 默认实时视频
       window.onload = function () {
         const data = {
-          rtsp: "rtsp流地址", // 换成自己的
-          number: 1, // 总共分几块
-          current: 1, // 播放第几块
+          rtsp: "rtsp地址",
         };
+
+        // {"rtsp":"rtsp://admin:admin123@10.3.72.254:554/cam/realmonitor?channel=2&subtype=0",}
         document
           .getElementById("iframe")
           .contentWindow.postMessage(JSON.stringify(data), "*");
       };
+      //坐标原点为左上角 sx为开始裁切的横坐标位置 sy为开始裁切的纵坐标位置 sw裁切的宽 sy裁切的高
       function poi() {
         const data = {
-          rtsp: "rtsp流地址",
-          number: 9, // 总共分几块
-          current: 3, // 播放第几块
+          rtsp: "rtsp地址",
+          sx: "0",
+          sy: "0",
+          sw: "1920",
+          sh: "1080",
         };
         document
           .getElementById("iframe")
           .contentWindow.postMessage(JSON.stringify(data), "*");
       }
+      function poi1() {
+        const data = {
+          rtsp: "rtsp地址",
+          sx: 130,
+          sy: 10,
+          sw: 560,
+          sh: 720,
+        };
+
+        document
+          .getElementById("iframe")
+          .contentWindow.postMessage(JSON.stringify(data), "*");
+      }
+      // rtsp://admin:admin123@10.3.72.254:554/cam/playback?channel=1&subtype=0&starttime=2021_11_18_14_08_00&endtime=2021_11_18_14_08_10
+      function poi2() {
+        const data = {
+          rtsp: "rtsp地址",
+          sx: 0,
+          sy: 0,
+          sw: 1920,
+          sh: 1080,
+        };
+        document
+          .getElementById("iframe")
+          .contentWindow.postMessage(JSON.stringify(data), "*");
+      }
+      // time为本条历史视频的时间 采用毫秒
       function poi4() {
         const data = [
           {
-            rtsp: "rtsp流地址", // 地址和公司后端协商 （历史视频）
-            number: 9, // 总共分几块
-            current: 3, // 播放第几块
-            time: 5000, // 视频的时间 毫秒
+            rtsp: "rtsp地址",
+            time: 5000,
           },
 
           {
-            rtsp: "rtsp流地址",
-            number: 16, // 总共分几块
-            current: 4, // 播放第几块
-            time: 5000, // 视频的时间 毫秒
+            rtsp: "rtsp地址",
+
+            time: 5000,
+          },
+          // sx: 90,
+          //   sy: 10,
+          //   sw: 360,
+          //   sh: 220,
+          {
+            rtsp: "rtsp地址",
+      
+            time: 5000,
           },
           {
-            rtsp: "rtsp流地址",
-            number: 1, // 总共分几块
-            current: 1, // 播放第几块
-            time: 5000, // 视频的时间 毫秒
+            rtsp: "rtsp地址",
+   
+            time: 5000,
           },
         ];
+        document
+          .getElementById("iframe")
+          .contentWindow.postMessage(JSON.stringify(data), "*");
+      }
+      function poi5() {
+        const data = {
+          rtsp: "rtsp地址",
+        };
+
         document
           .getElementById("iframe")
           .contentWindow.postMessage(JSON.stringify(data), "*");
